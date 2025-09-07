@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 220 90% 50%;
+    --accent: 170 70% 45%;
+    --background: 220 15% 95%;
+    --surface: 0 0% 100%;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+}
+
+@layer components {
+  .container {
+    @apply max-w-[1200px] mx-auto px-5;
+  }
+  
+  .grid-12 {
+    @apply grid grid-cols-12 gap-5;
+  }
+  
+  .display {
+    @apply text-5xl font-bold;
+  }
+  
+  .heading {
+    @apply text-2xl font-semibold;
+  }
+  
+  .body {
+    @apply text-base font-normal leading-7;
+  }
+}
