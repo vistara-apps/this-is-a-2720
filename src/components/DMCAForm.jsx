@@ -1,22 +1,37 @@
 import { useState } from 'react'
-import { FileText, Brain, Download, Upload } from 'lucide-react'
+import { FileText, Brain, Download, Upload, Loader2, AlertTriangle } from 'lucide-react'
+import { useDMCAAssistant } from '../hooks/useSampleSync'
 
 export function DMCAForm({ variant = 'initial' }) {
   const [formType, setFormType] = useState(variant)
   const [noticeText, setNoticeText] = useState('')
-  const [responseText, setResponseText] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [evidence, setEvidence] = useState('')
+  const [platform, setPlatform] = useState('')
+  
+  const { 
+    generateCounterNotice, 
+    isGenerating, 
+    generatedResponse, 
+    error,
+    clearResponse 
+  } = useDMCAAssistant()
 
   const generateResponse = async () => {
     if (!noticeText.trim()) return
 
-    setIsGenerating(true)
-    
-    // Simulate AI response generation
-    setTimeout(() => {
-      const mockResponse = `Subject: DMCA Counter-Notification
-
-Dear Copyright Agent,
+    try {
+      const response = await generateCounterNotice({
+        originalNotice: noticeText,
+        userResponse: evidence,
+        evidence: evidence,
+        platform: platform
+      })
+      
+      // The response is now available in generatedResponse from the hook
+    } catch (err) {
+      console.error('Failed to generate DMCA response:', err)
+    }
+  }
 
 I am writing in response to your DMCA takedown notice dated [DATE]. I believe that the material that was removed or disabled is not infringing, or that I have the right to use the material under fair use or another applicable exception to copyright.
 
