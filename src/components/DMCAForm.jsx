@@ -7,6 +7,7 @@ export function DMCAForm({ variant = 'initial' }) {
   const [noticeText, setNoticeText] = useState('')
   const [evidence, setEvidence] = useState('')
   const [platform, setPlatform] = useState('')
+  const [responseText, setResponseText] = useState('')
   
   const { 
     generateCounterNotice, 
@@ -20,14 +21,17 @@ export function DMCAForm({ variant = 'initial' }) {
     if (!noticeText.trim()) return
 
     try {
-      const response = await generateCounterNotice({
+      await generateCounterNotice({
         originalNotice: noticeText,
         userResponse: evidence,
         evidence: evidence,
         platform: platform
       })
       
-      // The response is now available in generatedResponse from the hook
+      // The response will be available in generatedResponse from the hook
+      if (generatedResponse) {
+        setResponseText(generatedResponse)
+      }
     } catch (err) {
       console.error('Failed to generate DMCA response:', err)
     }
