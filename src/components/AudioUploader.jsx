@@ -1,11 +1,15 @@
 import { useState, useRef } from 'react'
 import { Upload, Music, Loader2 } from 'lucide-react'
+import { useSampleAnalysis, useTrackManagement } from '../hooks/useSampleSync'
+import SampleSyncAPI from '../services/api'
 
 export function AudioUploader({ variant = 'dragAndDrop', onSamplesDetected, onTransactionStatus }) {
   const [isDragging, setIsDragging] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [uploadedFile, setUploadedFile] = useState(null)
   const fileInputRef = useRef(null)
+  
+  const { analyzeSample, isAnalyzing, error } = useSampleAnalysis()
+  const { saveTrack } = useTrackManagement()
 
   const handleDragOver = (e) => {
     e.preventDefault()
@@ -40,36 +44,34 @@ export function AudioUploader({ variant = 'dragAndDrop', onSamplesDetected, onTr
     }
 
     setUploadedFile(file)
-    setIsAnalyzing(true)
     onTransactionStatus({ status: 'pending', message: 'Analyzing audio file...' })
 
-    // Simulate AI analysis
-    setTimeout(() => {
-      const mockSamples = [
-        {
-          title: "Amen Break",
-          artist: "The Winstons",
-          confidence: 95,
-          timestamp: "0:32",
-          rightsHolder: "Color Red Music",
-          price: "$10",
-          type: "commercial"
-        },
-        {
-          title: "Think Break",
-          artist: "Lyn Collins",
-          confidence: 87,
-          timestamp: "1:15",
-          rightsHolder: "Universal Music",
-          price: "$15",
-          type: "shortClip"
-        }
-      ]
+    try {
+      // Save track to database first
+      const trackData = await saveTrack({
+        title: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+        audio_file_url: URL.createObjectURL(file), // In production, upload to cloud storage
+        analysis_status: 'analyzing'
+      })
+
+      // Analyze the sample using AI
+      const detectedSamples = await analyzeSample(file)
       
-      setIsAnalyzing(false)
-      onSamplesDetected(mockSamples)
+      // Update track with detected samples
+      if (trackData) {
+        // In a real implementation, update the track in the database
+        console.log('Track saved:', trackData)
+      }
+      
+      onSamplesDetected(detectedSamples)
       onTransactionStatus({ status: 'success', message: 'Sample analysis complete!' })
-    }, 3000)
+    } catch (err) {
+      console.error('Analysis failed:', err)
+      onTransactionStatus({ 
+        status: 'failed', 
+        message: error || 'Failed to analyze audio file' 
+      })
+    }
   }
 
   if (variant === 'fileInput') {

@@ -1,44 +1,40 @@
 import { useState } from 'react'
-import { FileText, Brain, Download, Upload } from 'lucide-react'
+import { FileText, Brain, Download, Upload, Loader2, AlertTriangle } from 'lucide-react'
+import { useDMCAAssistant } from '../hooks/useSampleSync'
 
 export function DMCAForm({ variant = 'initial' }) {
   const [formType, setFormType] = useState(variant)
   const [noticeText, setNoticeText] = useState('')
+  const [evidence, setEvidence] = useState('')
+  const [platform, setPlatform] = useState('')
   const [responseText, setResponseText] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
+  
+  const { 
+    generateCounterNotice, 
+    isGenerating, 
+    generatedResponse, 
+    error,
+    clearResponse 
+  } = useDMCAAssistant()
 
   const generateResponse = async () => {
     if (!noticeText.trim()) return
 
-    setIsGenerating(true)
-    
-    // Simulate AI response generation
-    setTimeout(() => {
-      const mockResponse = `Subject: DMCA Counter-Notification
-
-Dear Copyright Agent,
-
-I am writing in response to your DMCA takedown notice dated [DATE]. I believe that the material that was removed or disabled is not infringing, or that I have the right to use the material under fair use or another applicable exception to copyright.
-
-Specifically:
-1. The use of the sample constitutes fair use under Section 107 of the Copyright Act
-2. The sample has been substantially transformed in the new work
-3. The use does not negatively impact the market for the original work
-
-I have a good faith belief that the material was removed as a result of mistake or misidentification.
-
-I consent to the jurisdiction of the Federal District Court for the judicial district in which my address is located, and I will accept service of process from the person who provided the original DMCA notification.
-
-I swear, under penalty of perjury, that the above information is accurate and that I am authorized to act on behalf of the owner of the rights that are allegedly infringed.
-
-Sincerely,
-[Your Name]
-[Your Address]
-[Your Contact Information]`
+    try {
+      await generateCounterNotice({
+        originalNotice: noticeText,
+        userResponse: evidence,
+        evidence: evidence,
+        platform: platform
+      })
       
-      setResponseText(mockResponse)
-      setIsGenerating(false)
-    }, 2000)
+      // The response will be available in generatedResponse from the hook
+      if (generatedResponse) {
+        setResponseText(generatedResponse)
+      }
+    } catch (err) {
+      console.error('Failed to generate DMCA response:', err)
+    }
   }
 
   return (
@@ -101,16 +97,26 @@ Sincerely,
         </button>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <p className="text-red-400 text-sm flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            {error}
+          </p>
+        </div>
+      )}
+
       {/* Generated Response */}
-      {responseText && (
+      {generatedResponse && (
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white mb-2">
               Generated Response
             </label>
             <textarea
-              value={responseText}
-              onChange={(e) => setResponseText(e.target.value)}
+              value={generatedResponse}
+              readOnly
               className="w-full h-64 p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-primary focus:outline-none"
             />
           </div>

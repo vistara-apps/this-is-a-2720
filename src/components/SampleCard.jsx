@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Play, Pause, Shield, Clock, DollarSign } from 'lucide-react'
+import { Play, Pause, Shield, Clock, DollarSign, Loader2 } from 'lucide-react'
 import { LicenseTerms } from './LicenseTerms'
 import { usePaymentContext } from '../hooks/usePaymentContext'
+import { useBlockchainTransaction, useLicenseMarketplace } from '../hooks/useSampleSync'
 
 export function SampleCard({ sample, variant = 'preview', onLicense }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [showLicenseTerms, setShowLicenseTerms] = useState(false)
   const { createSession } = usePaymentContext()
+  const { executeLicenseTransaction, isProcessing } = useBlockchainTransaction()
+  const { fetchOffers } = useLicenseMarketplace()
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
